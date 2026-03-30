@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Healthcare</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            margin: auto;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Smart Healthcare System</h1>
+
+    <!-- FORM -->
+    <form action="/appointments/book" method="post">
+        <input type="text" name="patientName" placeholder="Patient Name" required><br>
+        <input type="text" name="doctorName" placeholder="Doctor Name" required><br>
+        <button type="submit">Book Appointment</button>
+    </form>
+
+    <!-- VIEW BUTTON -->
+    <br>
+    <button onclick="loadAppointments()">View Appointments</button>
+
+    <!-- TABLE -->
+    <table id="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+</div>
+
+<script>
+function loadAppointments() {
+    fetch('/appointments/all')
+        .then(response => response.json())
+        .then(data => {
+            let table = document.querySelector("#table tbody");
+            table.innerHTML = "";
+
+            data.forEach(a => {
+                let row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${a.id}</td>
+                    <td>${a.patientName}</td>
+                    <td>${a.doctorName}</td>
+                    <td>${a.appointmentTime}</td>
+                `;
+
+                table.appendChild(row);
+            });
+        })
+        .catch(error => console.error("Error:", error));
+}
+</script>
+
+</body>
+</html>

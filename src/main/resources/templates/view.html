@@ -1,0 +1,70 @@
+<h2>Appointments</h2>
+
+<!-- ✅ Message Box -->
+<div id="msg" style="margin:10px;font-weight:bold;"></div>
+
+<button onclick="loadAppointments()">Load</button>
+
+<table border="1" id="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody id="body"></tbody>
+</table>
+
+<script>
+function showMessage(msg, type="success") {
+    const div = document.getElementById("msg");
+    div.innerText = msg;
+    div.style.color = type === "error" ? "red" : "green";
+}
+
+function loadAppointments() {
+    fetch('/appointments/all')
+    .then(res => res.json())
+    .then(res => {
+
+        // ✅ Handle API response format
+        if (!res.success) {
+            showMessage(res.message, "error");
+            return;
+        }
+
+        showMessage(res.message);
+
+        let data = res.data;
+        let tbody = document.getElementById("body");
+        tbody.innerHTML = "";
+
+        // ✅ Empty case
+        if (data.length === 0) {
+            showMessage("No appointments available");
+            return;
+        }
+
+        data.forEach(a => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${a.id}</td>
+                <td>${a.patientName || '-'}</td>
+                <td>${a.doctorName || '-'}</td>
+                <td>${a.appointmentTime || '-'}</td>
+            </tr>`;
+        });
+    })
+    .catch(err => {
+        showMessage("Server error! Please try again later.", "error");
+    });
+}
+
+// ✅ Auto load when page opens
+window.onload = loadAppointments;
+</script>
+
+<br>
+<a href="/dashboard">Back</a>

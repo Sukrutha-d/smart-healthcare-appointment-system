@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Book Appointment</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fa;
+            text-align: center;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            width: 300px;
+            margin: auto;
+            margin-top: 80px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+        }
+
+        input, select {
+            width: 90%;
+            padding: 8px;
+            margin: 8px;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 95%;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .msg {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Book Appointment</h2>
+
+    <div class="msg">
+        <span th:text="${error}"></span>
+    </div>
+
+    <form action="/appointments/book" method="post">
+
+        <input name="patientName" placeholder="Patient Name" required>
+
+        <!-- ✅ Dynamic Doctor Dropdown -->
+        <select name="doctorName" id="doctor" required>
+            <option value="">Select Doctor</option>
+            <option value="Sam">Dr.Sam</option>
+            <option value="Lex">Dr.Lex</option>
+            <option value="Max">Dr.Max</option>
+            <option value="Alex">Dr.Alex</option>
+        </select>
+
+        <!-- ✅ Time input -->
+        <input type="datetime-local" name="time" id="time" required>
+
+        <button type="submit">Book Appointment</button>
+    </form>
+
+    <br>
+    <a href="/dashboard">Back</a>
+</div>
+
+<script>
+// ✅ Load doctors dynamically
+fetch('/appointments/doctors')
+.then(res => res.json())
+.then(data => {
+    let select = document.getElementById("doctor");
+
+    data.forEach(d => {
+        select.innerHTML += `<option value="${d}">${d}</option>`;
+    });
+});
+
+// ✅ Prevent past time
+document.getElementById("time").addEventListener("change", function () {
+    let selected = new Date(this.value);
+    let now = new Date();
+
+    if (selected < now) {
+        alert("Cannot select past time ❌");
+        this.value = "";
+    }
+});
+</script>
+
+</body>
+</html>
