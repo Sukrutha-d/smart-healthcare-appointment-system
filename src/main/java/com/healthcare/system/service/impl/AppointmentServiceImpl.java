@@ -1,15 +1,17 @@
 package com.healthcare.system.service.impl;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.healthcare.system.model.Appointment;
+import com.healthcare.system.model.Doctor;
 import com.healthcare.system.repository.AppointmentRepository;
 import com.healthcare.system.repository.DoctorRepository;
 import com.healthcare.system.service.AppointmentService;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
@@ -22,8 +24,26 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public String bookAppointment(String patientName, String doctorName, String time) {
-
+        // ✅ Fix: HTML5 datetime-local uses 'T' (e.g., 2026-04-08T10:30)
+        // LocalDateTime.parse(time) handles this perfectly.
         LocalDateTime appointmentTime = LocalDateTime.parse(time);
+
+        Doctor doctor = doctorRepository.findByName(doctorName);
+        if (doctor == null) {
+            return "Doctor not found ❌";
+        }
+
+        if (doctor.getAvailableFrom() == null || doctor.getAvailableTo() == null) {
+            return "Doctor schedule not set ❌";
+        }
+
+        LocalTime appointmentLocalTime = appointmentTime.toLocalTime();
+        LocalTime start = LocalTime.parse(doctor.getAvailableFrom());
+        LocalTime end = LocalTime.parse(doctor.getAvailableTo());
+
+        if (appointmentLocalTime.isBefore(start) || appointmentLocalTime.isAfter(end)) {
+            return "Doctor not available ⛔ (Available: " + start + " - " + end + ")";
+        }
 
         boolean exists = appointmentRepository
                 .existsByDoctorNameAndAppointmentTime(doctorName, appointmentTime);
@@ -38,13 +58,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         a.setAppointmentTime(appointmentTime);
 
         appointmentRepository.save(a);
-
         return "Appointment booked successfully ✅";
     }
 
     @Override
     public List<Appointment> getAllAppointments() {
-        return appointmentRepository.findAll(); // ✅ FIXED
+        return appointmentRepository.findAll();
     }
 
     @Override

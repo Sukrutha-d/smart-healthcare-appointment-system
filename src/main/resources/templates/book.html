@@ -1,105 +1,151 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
-    <title>Book Appointment</title>
-
+    <meta charset="UTF-8">
+    <title>Book Appointment | Healthcare System</title>
     <style>
+        /* Modern Healthcare Theme */
         body {
-            font-family: Arial;
-            background: #f5f7fa;
-            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
         }
-
-        .container {
+        .card {
             background: white;
-            padding: 20px;
-            width: 300px;
-            margin: auto;
-            margin-top: 80px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #ccc;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
         }
-
-        input, select {
-            width: 90%;
-            padding: 8px;
-            margin: 8px;
-        }
-
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 1.5rem; }
+        
+        #msg { 
+            font-weight: bold; 
+            margin-bottom: 1rem; 
+            text-align: center; 
             padding: 10px;
-            width: 95%;
-            cursor: pointer;
             border-radius: 5px;
         }
 
-        button:hover {
-            background: #45a049;
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Fixes width issue */
+            font-size: 1rem;
         }
 
-        .msg {
-            color: red;
+        button {
+            width: 100%;
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background: #2980b9; }
+
+        .back-btn {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            text-decoration: none;
+            color: #7f8c8d;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
     <h2>Book Appointment</h2>
 
-    <div class="msg">
-        <span th:text="${error}"></span>
-    </div>
+    <div id="msg"></div>
 
-    <form action="/appointments/book" method="post">
+    <form id="form">
+        <div class="form-group">
+            <label>Patient Name</label>
+            <input name="patientName" placeholder="Full Name" required>
+        </div>
 
-        <input name="patientName" placeholder="Patient Name" required>
+        <div class="form-group">
+            <label>Select Doctor</label>
+            <select name="doctorName" id="doctor" required>
+                <option value="">Select Doctor</option>
+            </select>
+        </div>
 
-        <!-- ✅ Dynamic Doctor Dropdown -->
-        <select name="doctorName" id="doctor" required>
-            <option value="">Select Doctor</option>
-            <option value="Sam">Dr.Sam</option>
-            <option value="Lex">Dr.Lex</option>
-            <option value="Max">Dr.Max</option>
-            <option value="Alex">Dr.Alex</option>
-        </select>
-
-        <!-- ✅ Time input -->
-        <input type="datetime-local" name="time" id="time" required>
+        <div class="form-group">
+            <label>Appointment Time</label>
+            <input type="datetime-local" name="time" required>
+        </div>
 
         <button type="submit">Book Appointment</button>
     </form>
 
-    <br>
-    <a href="/dashboard">Back</a>
+    <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
 </div>
 
 <script>
-// ✅ Load doctors dynamically
+// Load doctors
 fetch('/appointments/doctors')
 .then(res => res.json())
 .then(data => {
-    let select = document.getElementById("doctor");
-
-    data.forEach(d => {
-        select.innerHTML += `<option value="${d}">${d}</option>`;
-    });
-});
-
-// ✅ Prevent past time
-document.getElementById("time").addEventListener("change", function () {
-    let selected = new Date(this.value);
-    let now = new Date();
-
-    if (selected < now) {
-        alert("Cannot select past time ❌");
-        this.value = "";
+    let dropdown = document.getElementById("doctor");
+    if(data.length === 0) {
+        dropdown.innerHTML = '<option value="">No doctors available</option>';
+    } else {
+        data.forEach(d => {
+            dropdown.innerHTML += `<option value="${d}">${d}</option>`;
+        });
     }
-});
+})
+.catch(err => console.error("Fetch Error:", err));
+
+// Submit form
+document.getElementById("form").onsubmit = function(e) {
+    e.preventDefault();
+
+    let patientName = document.querySelector("[name='patientName']").value;
+    let doctorName = document.querySelector("[name='doctorName']").value;
+    let time = document.querySelector("[name='time']").value;
+
+    fetch('/appointments/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            patientName: patientName,
+            doctorName: doctorName,
+            appointmentTime: time
+        })
+    })
+    .then(res => res.text())
+    .then(msg => {
+        let div = document.getElementById("msg");
+        div.innerText = msg;
+        div.style.display = "block";
+
+        if (msg.includes("❌") || msg.includes("⛔")) {
+            div.style.color = "#c0392b";
+            div.style.background = "#f9ebea";
+        } else {
+            div.style.color = "#27ae60";
+            div.style.background = "#e9f7ef";
+            setTimeout(() => { window.location.href = "/appointments/view"; }, 1500);
+        }
+    });
+};
 </script>
 
 </body>

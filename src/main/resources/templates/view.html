@@ -1,23 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Appointments</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fa;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        #msg {
+            margin: 10px;
+            font-weight: bold;
+        }
+
+        table {
+            margin: auto;
+            border-collapse: collapse;
+            width: 80%;
+            background: white;
+            box-shadow: 0 0 10px #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+
+        button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: darkred;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
 <h2>Appointments</h2>
 
 <!-- ✅ Message Box -->
-<div id="msg" style="margin:10px;font-weight:bold;"></div>
+<div id="msg"></div>
 
-<button onclick="loadAppointments()">Load</button>
+<button onclick="loadAppointments()">Load Appointments</button>
 
-<table border="1" id="table">
+<br><br>
+
+<table>
     <thead>
         <tr>
             <th>ID</th>
             <th>Patient</th>
             <th>Doctor</th>
             <th>Time</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody id="body"></tbody>
 </table>
 
 <script>
+
 function showMessage(msg, type="success") {
     const div = document.getElementById("msg");
     div.innerText = msg;
@@ -29,7 +98,6 @@ function loadAppointments() {
     .then(res => res.json())
     .then(res => {
 
-        // ✅ Handle API response format
         if (!res.success) {
             showMessage(res.message, "error");
             return;
@@ -41,7 +109,6 @@ function loadAppointments() {
         let tbody = document.getElementById("body");
         tbody.innerHTML = "";
 
-        // ✅ Empty case
         if (data.length === 0) {
             showMessage("No appointments available");
             return;
@@ -54,17 +121,37 @@ function loadAppointments() {
                 <td>${a.patientName || '-'}</td>
                 <td>${a.doctorName || '-'}</td>
                 <td>${a.appointmentTime || '-'}</td>
+                <td>
+                    <button onclick="cancelAppointment(${a.id})">Cancel</button>
+                </td>
             </tr>`;
         });
     })
     .catch(err => {
-        showMessage("Server error! Please try again later.", "error");
+        showMessage("Server error! Try again later ❌", "error");
     });
 }
 
-// ✅ Auto load when page opens
+function cancelAppointment(id) {
+    if (!confirm("Are you sure you want to cancel?")) return;
+
+    fetch('/appointments/cancel/' + id, {
+        method: 'PUT'
+    })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
+        loadAppointments();
+    });
+}
+
+// ✅ Auto load
 window.onload = loadAppointments;
+
 </script>
 
 <br>
 <a href="/dashboard">Back</a>
+
+</body>
+</html>

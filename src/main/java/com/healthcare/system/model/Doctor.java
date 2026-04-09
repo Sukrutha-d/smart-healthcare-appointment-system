@@ -1,14 +1,20 @@
 package com.healthcare.system.model;
 
-import jakarta.persistence.*;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class Doctor extends User {
 
     private String specialization;
+
+    // ✅ ADD HERE
+    private String availableFrom; // "10:00"
+    private String availableTo;   // "16:00"
 
     // ================= RELATIONSHIPS =================
 
@@ -27,6 +33,23 @@ public class Doctor extends User {
 
     public void setSpecialization(String specialization) {
         this.specialization = specialization;
+    }
+
+    // ✅ ADD THESE METHODS
+    public String getAvailableFrom() {
+        return availableFrom;
+    }
+
+    public void setAvailableFrom(String availableFrom) {
+        this.availableFrom = availableFrom;
+    }
+
+    public String getAvailableTo() {
+        return availableTo;
+    }
+
+    public void setAvailableTo(String availableTo) {
+        this.availableTo = availableTo;
     }
 
     public List<Appointment> getAppointments() {
