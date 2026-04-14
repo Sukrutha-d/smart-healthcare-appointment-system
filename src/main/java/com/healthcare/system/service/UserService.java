@@ -1,5 +1,9 @@
 package com.healthcare.system.service;
 
+import com.healthcare.system.model.User;
+
 public interface UserService {
-    boolean validate(String username, String password);
+
+    User login(String username, String password);
+
 }

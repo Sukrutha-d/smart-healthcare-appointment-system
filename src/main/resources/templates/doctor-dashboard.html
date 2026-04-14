@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fb;
+            padding: 30px;
+        }
+
+        h2 {
+            color: #1e3a8a;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        input {
+            padding: 8px;
+            margin: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .available {
+            color: green;
+            font-weight: bold;
+        }
+
+        .booked {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Doctor Dashboard</h2>
+
+<div class="card">
+    <h3>Doctor: <span th:text="${doctorName}"></span></h3>
+</div>
+
+<!-- 📅 DATE FILTER -->
+<div class="card">
+    <h3>Select Date</h3>
+
+    <input type="date" id="date" th:value="${selectedDate}">
+</div>
+
+<!-- 📋 SLOT TABLE -->
+<div class="card">
+    <h3>Slots</h3>
+
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+        </tr>
+
+        <tr th:each="slot : ${slots}">
+            
+            <td th:text="${#temporals.format(slot.startTime, 'yyyy-MM-dd')}"></td>
+
+            <td th:text="${#temporals.format(slot.startTime, 'HH:mm')}"></td>
+
+            <td>
+
+                <!-- ✅ AVAILABLE -->
+                <span th:if="${slot.status.name() == 'AVAILABLE'}"
+                      class="available">
+                    AVAILABLE
+                </span>
+
+                <!-- ✅ BOOKED WITH PATIENT NAME -->
+                <span th:if="${slot.status.name() == 'BOOKED'}"
+                      class="booked">
+                    BOOKED (
+                    <span th:text="${slot.patientName}"></span>
+                    )
+                </span>
+
+            </td>
+
+        </tr>
+
+    </table>
+</div>
+
+<script>
+    document.getElementById("date").onchange = function() {
+        let date = this.value;
+        let username = "[[${doctorName}]]";
+
+        window.location.href = `/doctor/dashboard?username=${username}&date=${date}`;
+    };
+
+    // 🔒 Block past dates (optional: remove if you want full access)
+    let today = new Date().toISOString().split("T")[0];
+    document.getElementById("date").setAttribute("min", today);
+</script>
+
+</body>
+</html>

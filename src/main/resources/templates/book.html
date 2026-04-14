@@ -1,151 +1,177 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Book Appointment | Healthcare System</title>
+    <title>Book Appointment</title>
+
     <style>
-        /* Modern Healthcare Theme */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f4f8;
-            display: flex;
-            justify-content: center;
-            padding-top: 50px;
+            font-family: Arial;
+            background: #f5f7fb;
+            text-align: center;
+            padding: 40px;
         }
+
         .card {
             background: white;
-            padding: 2rem;
+            padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 400px;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        h2 { color: #2c3e50; text-align: center; margin-bottom: 1.5rem; }
-        
-        #msg { 
-            font-weight: bold; 
-            margin-bottom: 1rem; 
-            text-align: center; 
+
+        h2 {
+            color: #1e3a8a;
+        }
+
+        input, select, button {
             padding: 10px;
-            border-radius: 5px;
+            margin: 10px;
+            width: 260px;
         }
 
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box; /* Fixes width issue */
-            font-size: 1rem;
-        }
-
-        button {
-            width: 100%;
-            background: #3498db;
-            color: white;
-            padding: 12px;
+        .slot-btn {
+            padding: 10px;
+            margin: 5px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
             cursor: pointer;
-            transition: 0.3s;
         }
-        button:hover { background: #2980b9; }
 
-        .back-btn {
-            display: block;
-            text-align: center;
-            margin-top: 1rem;
-            text-decoration: none;
-            color: #7f8c8d;
-            font-size: 0.9rem;
+        .available {
+            background: green;
+            color: white;
+        }
+
+        .booked {
+            background: red;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .expired {
+            background: gray;
+            color: white;
+            cursor: not-allowed;
         }
     </style>
 </head>
 
 <body>
 
+<h2>Book Appointment</h2>
+
 <div class="card">
-    <h2>Book Appointment</h2>
 
-    <div id="msg"></div>
+    <input id="patientName" placeholder="Patient Name"><br>
 
-    <form id="form">
-        <div class="form-group">
-            <label>Patient Name</label>
-            <input name="patientName" placeholder="Full Name" required>
-        </div>
+    <select id="doctor"></select><br>
 
-        <div class="form-group">
-            <label>Select Doctor</label>
-            <select name="doctorName" id="doctor" required>
-                <option value="">Select Doctor</option>
-            </select>
-        </div>
+    <input type="date" id="date"><br>
 
-        <div class="form-group">
-            <label>Appointment Time</label>
-            <input type="datetime-local" name="time" required>
-        </div>
+    <div id="slots"></div>
 
-        <button type="submit">Book Appointment</button>
-    </form>
-
-    <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
 </div>
 
 <script>
-// Load doctors
+
+// LOAD DOCTORS
 fetch('/appointments/doctors')
 .then(res => res.json())
 .then(data => {
-    let dropdown = document.getElementById("doctor");
-    if(data.length === 0) {
-        dropdown.innerHTML = '<option value="">No doctors available</option>';
-    } else {
-        data.forEach(d => {
-            dropdown.innerHTML += `<option value="${d}">${d}</option>`;
+    let d = document.getElementById("doctor");
+    data.forEach(doc => {
+        d.innerHTML += `<option value="${doc}">${doc}</option>`;
+    });
+});
+
+// LOAD SLOTS
+function loadSlots() {
+
+    let doctor = document.getElementById("doctor").value;
+    let date = document.getElementById("date").value;
+
+    if (!doctor || !date) return;
+
+    fetch(`/slots/${doctor}/${date}`)
+    .then(res => res.json())
+    .then(slots => {
+
+        let div = document.getElementById("slots");
+        div.innerHTML = "";
+
+        if (slots.length === 0) {
+            div.innerHTML = "<p>No slots available</p>";
+            return;
+        }
+
+        let now = new Date();
+
+        slots.forEach(s => {
+
+            let btn = document.createElement("button");
+
+            let slotTime = new Date(s.startTime);
+
+            let time = slotTime.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            btn.innerText = time;
+
+            // 🔥 EXPIRED SLOT
+            if (slotTime < now) {
+                btn.className = "slot-btn expired";
+                btn.disabled = true;
+                btn.innerText += " (Expired)";
+            }
+
+            // ✅ AVAILABLE
+            else if (s.status === "AVAILABLE") {
+                btn.className = "slot-btn available";
+                btn.onclick = () => book(s.id);
+            }
+
+            // ❌ BOOKED
+            else {
+                btn.className = "slot-btn booked";
+                btn.disabled = true;
+            }
+
+            div.appendChild(btn);
         });
+    });
+}
+
+// BOOK
+function book(id) {
+
+    let name = document.getElementById("patientName").value;
+
+    if (!name) {
+        alert("Enter name");
+        return;
     }
-})
-.catch(err => console.error("Fetch Error:", err));
-
-// Submit form
-document.getElementById("form").onsubmit = function(e) {
-    e.preventDefault();
-
-    let patientName = document.querySelector("[name='patientName']").value;
-    let doctorName = document.querySelector("[name='doctorName']").value;
-    let time = document.querySelector("[name='time']").value;
 
     fetch('/appointments/book', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            patientName: patientName,
-            doctorName: doctorName,
-            appointmentTime: time
-        })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `patientName=${name}&slotId=${id}`
     })
     .then(res => res.text())
     .then(msg => {
-        let div = document.getElementById("msg");
-        div.innerText = msg;
-        div.style.display = "block";
-
-        if (msg.includes("❌") || msg.includes("⛔")) {
-            div.style.color = "#c0392b";
-            div.style.background = "#f9ebea";
-        } else {
-            div.style.color = "#27ae60";
-            div.style.background = "#e9f7ef";
-            setTimeout(() => { window.location.href = "/appointments/view"; }, 1500);
-        }
+        alert(msg);
+        loadSlots();
     });
-};
+}
+
+// EVENTS
+document.getElementById("doctor").onchange = loadSlots;
+document.getElementById("date").onchange = loadSlots;
+
+// BLOCK PAST DATE
+let today = new Date().toISOString().split("T")[0];
+document.getElementById("date").setAttribute("min", today);
+
 </script>
 
 </body>

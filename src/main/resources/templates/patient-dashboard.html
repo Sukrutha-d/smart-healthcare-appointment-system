@@ -1,0 +1,39 @@
+<h2>My Appointments</h2>
+
+<input id="name" placeholder="Enter your name">
+<button onclick="load()">Load</button>
+
+<table border="1">
+<tr>
+<th>Doctor</th>
+<th>Date</th>
+<th>Time</th>
+<th>Status</th>
+</tr>
+<tbody id="data"></tbody>
+</table>
+
+<script>
+function load() {
+    let name = document.getElementById("name").value;
+
+    fetch(`/appointments/patient/${name}`)
+    .then(res => res.json())
+    .then(data => {
+
+        let html = "";
+
+        data.forEach(a => {
+            html += `
+            <tr>
+                <td>${a.doctorName}</td>
+                <td>${a.appointmentTime.split("T")[0]}</td>
+                <td>${a.appointmentTime.split("T")[1]}</td>
+                <td>${a.status}</td>
+            </tr>`;
+        });
+
+        document.getElementById("data").innerHTML = html;
+    });
+}
+</script>

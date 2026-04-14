@@ -1,5 +1,7 @@
 package com.healthcare.system.enums;
 
 public enum SlotStatus {
-    AVAILABLE, BOOKED
+    AVAILABLE,
+    BOOKED,
+    CANCELLED
 }

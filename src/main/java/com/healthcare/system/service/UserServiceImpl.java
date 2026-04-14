@@ -1,17 +1,47 @@
 package com.healthcare.system.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service // 🔥 THIS IS THE MISSING PIECE
+import com.healthcare.system.model.User;
+import com.healthcare.system.model.Doctor;
+import com.healthcare.system.model.Patient;
+import com.healthcare.system.repository.DoctorRepository;
+import com.healthcare.system.repository.PatientRepository;
+
+@Service
 public class UserServiceImpl implements UserService {
 
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private PatientRepository patientRepository;
+
     @Override
-    public boolean validate(String username, String password) {
-        // For now, let's use a hardcoded check. 
-        // Later, you can add your Repository logic here to check the DB.
-        if ("admin".equals(username) && "123".equals(password)) {
-            return true;
+    public User login(String username, String password) {
+
+        System.out.println("LOGIN TRY: " + username);
+
+        // 🔍 Check doctor
+        Doctor doctor = doctorRepository.findByEmail(username);
+        if (doctor != null) {
+            System.out.println("Doctor found");
+            if (doctor.getPassword().equals(password)) {
+                return doctor;
+            }
         }
-        return false;
+
+        // 🔍 Check patient
+        Patient patient = patientRepository.findByEmail(username);
+        if (patient != null) {
+            System.out.println("Patient found");
+            if (patient.getPassword().equals(password)) {
+                return patient;
+            }
+        }
+
+        System.out.println("Login failed");
+        return null;
     }
 }

@@ -12,17 +12,14 @@ public class Doctor extends User {
 
     private String specialization;
 
-    // ✅ ADD HERE
-    private String availableFrom; // "10:00"
-    private String availableTo;   // "16:00"
+    private String availableFrom;
+    private String availableTo;
 
     // ================= RELATIONSHIPS =================
 
+    // ✅ ONLY KEEP SLOT RELATION
     @OneToMany(mappedBy = "doctor")
     @JsonManagedReference
-    private List<Appointment> appointments;
-
-    @OneToMany(mappedBy = "doctor")
     private List<AvailabilitySlot> slots;
 
     // ================= GETTERS & SETTERS =================
@@ -35,7 +32,6 @@ public class Doctor extends User {
         this.specialization = specialization;
     }
 
-    // ✅ ADD THESE METHODS
     public String getAvailableFrom() {
         return availableFrom;
     }
@@ -50,14 +46,6 @@ public class Doctor extends User {
 
     public void setAvailableTo(String availableTo) {
         this.availableTo = availableTo;
-    }
-
-    public List<Appointment> getAppointments() {
-        return appointments;
-    }
-
-    public void setAppointments(List<Appointment> appointments) {
-        this.appointments = appointments;
     }
 
     public List<AvailabilitySlot> getSlots() {
