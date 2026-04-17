@@ -8,4 +8,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     Doctor findByName(String name);
 
     Doctor findByEmail(String email);
+
+    java.util.List<Doctor> findBySpecialization(String specialization);
 }

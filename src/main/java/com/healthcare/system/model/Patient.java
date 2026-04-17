@@ -5,15 +5,6 @@ import jakarta.persistence.Entity;
 @Entity
 public class Patient extends User {
 
-    private String name;
+    // Removed duplicate name field to fix shadowing (User class already has name)
 
-    // ================= GETTERS & SETTERS =================
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

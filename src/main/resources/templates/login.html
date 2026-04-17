@@ -8,27 +8,39 @@
         .login-card { background: white; padding: 40px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         input, select { padding: 10px; margin: 10px; width: 250px; border-radius: 5px; border: 1px solid #ccc; }
         button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .error { color: red; margin-bottom: 10px; display: none; }
+        .error { color: #dc2626; margin-bottom: 15px; font-size: 14px; display: none; }
+        .success { color: #059669; margin-bottom: 15px; font-size: 14px; display: none; }
+        .footer { margin-top: 20px; font-size: 14px; color: #64748b; }
+        .footer a { color: #2563eb; text-decoration: none; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="login-card">
-    <h2>Healthcare Login</h2>
+    <h2 style="margin-top:0;">Healthcare Login</h2>
     
     <div id="error-msg" class="error">Invalid username or password!</div>
+    <div id="success-msg" class="success">Registration successful! Please login.</div>
 
     <form action="/login" method="post">
-        <input type="text" name="username" placeholder="Username" required><br>
+        <input type="text" name="username" placeholder="Email Address" required><br>
         <input type="password" name="password" placeholder="Password" required><br>
 
         <button type="submit">Login</button>
     </form>
+
+    <div class="footer">
+        Don't have an account? <a href="/register">Create Patient Account</a>
+    </div>
 </div>
 
 <script>
-    if (window.location.search.includes("error=true")) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "true") {
         document.getElementById("error-msg").style.display = "block";
+    }
+    if (params.get("registered") === "true") {
+        document.getElementById("success-msg").style.display = "block";
     }
 </script>
 

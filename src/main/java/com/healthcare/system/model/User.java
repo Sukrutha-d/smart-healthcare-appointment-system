@@ -31,6 +31,7 @@ public abstract class User {
     private Role role;
 
     @Enumerated(EnumType.STRING)
+    @jakarta.persistence.Column(length = 20)
     private AccountStatus status;
 
     // ================= GETTERS & SETTERS =================

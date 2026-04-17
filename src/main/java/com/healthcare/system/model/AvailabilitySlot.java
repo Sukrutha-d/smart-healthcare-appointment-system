@@ -26,6 +26,17 @@ public class AvailabilitySlot {
     @JsonIgnore   // 🔥 THIS LINE FIXES YOUR ISSUE
     private Doctor doctor;
 
+    @Transient
+    private com.healthcare.system.enums.AppointmentStatus appointmentStatus;
+
+    public com.healthcare.system.enums.AppointmentStatus getAppointmentStatus() {
+        return appointmentStatus;
+    }
+
+    public void setAppointmentStatus(com.healthcare.system.enums.AppointmentStatus appointmentStatus) {
+        this.appointmentStatus = appointmentStatus;
+    }
+
     // ===== GETTERS & SETTERS =====
 
     public Long getId() {

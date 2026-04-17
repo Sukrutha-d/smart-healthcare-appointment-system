@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+*.pdf
+
+### Project Specific ###
+/db/
+/logs/
+*.log
+*.mv.db
+*.trace.db

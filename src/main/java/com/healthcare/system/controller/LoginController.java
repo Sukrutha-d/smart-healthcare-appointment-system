@@ -34,9 +34,15 @@ public class LoginController {
             return "redirect:/login?error=true";
         }
 
-        // 🔥 IMPORTANT FIX
+        // 🔥 ROLE-BASED REDIRECTS
         if (user.getRole().name().equals("DOCTOR")) {
             return "redirect:/doctor/dashboard?username=" + user.getName();
+        } else if (user.getRole().name().equals("ADMIN")) {
+            return "redirect:/admin/dashboard?username=" + user.getName();
+        } else if (user.getRole().name().equals("STAFF")) {
+            return "redirect:/staff/dashboard?username=" + user.getName();
+        } else if (user.getRole().name().equals("PATIENT")) {
+            return "redirect:/patient/dashboard?username=" + user.getName();
         } else {
             return "redirect:/dashboard";
         }

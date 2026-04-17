@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Smart Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #334155;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--primary);
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h1 {
+            font-size: 20px;
+            margin-bottom: 40px;
+            color: var(--accent);
+        }
+
+        .nav-link {
+            display: block;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .nav-link.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .dashboard-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .dashboard-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards and Tables */
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 24px; margin-bottom: 24px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 13px; color: #64748b; text-transform: uppercase; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 12px; text-transform: uppercase; }
+        td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge.ACTIVE { background: #dcfce7; color: #166534; }
+        .badge.INACTIVE { background: #fee2e2; color: #991b1b; }
+
+        .btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger { background: #ef4444; }
+        .btn-warning { background: #f59e0b; }
+        .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #64748b; }
+
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; box-sizing: border-box; }
+        
+        /* Modal Style */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 30px; border-radius: 12px; width: 400px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h1>Smart Health Admin</h1>
+    <a href="javascript:void(0)" onclick="showSection('overview', event)" id="nav-overview" class="nav-link active">Dashboard Overview</a>
+    <a href="javascript:void(0)" onclick="showSection('creation', event)" id="nav-creation" class="nav-link">Account Creation</a>
+    <a href="javascript:void(0)" onclick="showSection('doctors', event)" id="nav-doctors" class="nav-link">Doctor Details</a>
+    <a href="javascript:void(0)" onclick="showSection('patients', event)" id="nav-patients" class="nav-link">Patient Details</a>
+    <a href="javascript:void(0)" onclick="showSection('staff', event)" id="nav-staff" class="nav-link">Staff Details</a>
+    <div style="margin-top: auto;">
+        <a th:href="@{/login}" class="nav-link">Sign Out</a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 id="section-title" style="margin: 0;">System Overview</h2>
+        <span th:text="${'Welcome, ' + admin.name}" style="color: #64748b; font-weight: 500;"></span>
+    </div>
+
+    <!-- 🌟 OVERVIEW -->
+    <div id="section-overview" class="dashboard-section active">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-value" th:text="'$' + ${report.totalRevenue}"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Weekly Revenue</div>
+                <div class="stat-value" style="color: #10b981;" th:text="'$' + ${report.weeklyRevenue}"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Doctors</div>
+                <div class="stat-value" th:text="${report.totalDoctors}"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 style="margin-top:0;">Doctor Performance</h3>
+            <div th:each="entry : ${report.doctorStats}" style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span th:text="${entry.key}"></span>
+                    <span th:text="${entry.value} + ' Appts'" style="font-weight: 600;"></span>
+                </div>
+                <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                    <div th:style="'height: 100%; background: var(--accent); width: ' + (${entry.value} * 10) + '%;'"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ➕ CREATION -->
+    <div id="section-creation" class="dashboard-section">
+        <div class="card">
+            <h3>Create New Account</h3>
+            <form th:action="@{/admin/users/create}" method="POST">
+                <input type="hidden" name="adminUser" th:value="${admin.name}">
+                <div class="form-group">
+                    <label class="form-label">Account Role</label>
+                    <select name="role" id="create-role" class="form-control" onchange="toggleCreateFields()" required>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="STAFF">Staff (Admin/Billing)</option>
+                        <option value="PATIENT">Patient</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="E.g. Dr. Emily Green" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="emily@test.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" value="1234" required>
+                </div>
+                
+                <div id="create-doctor-fields" class="form-group">
+                    <label class="form-label">Specialization</label>
+                    <input type="text" name="specialization" class="form-control" placeholder="E.g. Neurology">
+                </div>
+                <div id="create-staff-fields" class="form-group" style="display:none;">
+                    <label class="form-label">Department</label>
+                    <input type="text" name="department" class="form-control" placeholder="E.g. Front Desk">
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🩺 DOCTORS -->
+    <div id="section-doctors" class="dashboard-section">
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Specialization</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}" th:if="${u.role.name() == 'DOCTOR'}">
+                        <td th:text="${u.name}" style="font-weight:600;"></td>
+                        <td th:text="${u.email}"></td>
+                        <!-- Safe access if we know role is DOCTOR -->
+                        <td th:text="${#objects.nullSafe(u, '').role.name() == 'DOCTOR' ? u.specialization : ''}"></td>
+                        <td><span th:class="'badge ' + ${u.status}" th:text="${u.status}"></span></td>
+                        <td>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-outline" th:attr="onclick='openEditModal(\''+${u.id}+'\', \''+${u.name}+'\', \''+${u.email}+'\', \''+${u.specialization}+'\', \'doctors\')'">Edit</button>
+                                <form th:if="${u.status.name() == 'ACTIVE'}" th:action="@{/admin/users/{id}/deactivate(id=${u.id})}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn btn-warning">Off</button>
+                                </form>
+                                <form th:if="${u.status.name() == 'INACTIVE'}" th:action="@{/admin/users/{id}/activate(id=${u.id})}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn">On</button>
+                                </form>
+                                <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="POST" style="display:inline;" onsubmit="return confirm('Delete user?')">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn btn-danger">X</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 👤 PATIENTS -->
+    <div id="section-patients" class="dashboard-section">
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}" th:if="${u.role.name() == 'PATIENT'}">
+                        <td th:text="${u.name}" style="font-weight:600;"></td>
+                        <td th:text="${u.email}"></td>
+                        <td><span th:class="'badge ' + ${u.status}" th:text="${u.status}"></span></td>
+                        <td>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-outline" th:attr="onclick='openEditModal(\''+${u.id}+'\', \''+${u.name}+'\', \''+${u.email}+'\', \'\', \'patients\')'">Edit</button>
+                                <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="POST" style="display:inline;" onsubmit="return confirm('Delete user?')">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn btn-danger">X</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 🏢 STAFF -->
+    <div id="section-staff" class="dashboard-section">
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}" th:if="${u.role.name() == 'STAFF'}">
+                        <td th:text="${u.name}" style="font-weight:600;"></td>
+                        <td th:text="${u.email}"></td>
+                        <td th:text="${#objects.nullSafe(u, '').role.name() == 'STAFF' ? u.department : ''}"></td>
+                        <td><span th:class="'badge ' + ${u.status}" th:text="${u.status}"></span></td>
+                        <td>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-outline" th:attr="onclick='openEditModal(\''+${u.id}+'\', \''+${u.name}+'\', \''+${u.email}+'\', \''+${u.department}+'\', \'staff\')'">Edit</button>
+                                <form th:if="${u.status.name() == 'ACTIVE'}" th:action="@{/admin/users/{id}/deactivate(id=${u.id})}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn btn-warning">Off</button>
+                                </form>
+                                <form th:if="${u.status.name() == 'INACTIVE'}" th:action="@{/admin/users/{id}/activate(id=${u.id})}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn">On</button>
+                                </form>
+                                <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="POST" style="display:inline;" onsubmit="return confirm('Delete user?')">
+                                    <input type="hidden" name="username" th:value="${admin.name}"><button type="submit" class="btn btn-danger">X</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h3>Edit User Details</h3>
+        <form id="editForm" method="POST">
+            <input type="hidden" name="adminUser" th:value="${admin.name}">
+            <input type="hidden" name="section" id="edit-section">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" id="edit-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" id="edit-email" class="form-control" required>
+            </div>
+            <div id="edit-extra-group" class="form-group">
+                <label class="form-label" id="edit-extra-label">Info</label>
+                <input type="text" name="extraData" id="edit-extra" class="form-control">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="submit" class="btn" style="flex:1;">Save Changes</button>
+                <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeEditModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function showSection(id, event) {
+        if(event) event.preventDefault();
+        
+        const navEl = document.getElementById('nav-' + id);
+        const sectionEl = document.getElementById('section-' + id);
+        
+        if (!navEl || !sectionEl) return;
+
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        navEl.classList.add('active');
+        
+        document.querySelectorAll('.dashboard-section').forEach(sec => sec.classList.remove('active'));
+        sectionEl.classList.add('active');
+
+        const titles = {
+            'overview': 'System Overview', 'creation': 'Account Creation',
+            'doctors': 'Doctor Details', 'patients': 'Patient Details', 'staff': 'Staff Details'
+        };
+        document.getElementById('section-title').innerText = titles[id] || 'Dashboard';
+        window.location.hash = id;
+    }
+
+    function toggleCreateFields() {
+        const role = document.getElementById('create-role').value;
+        const docFields = document.getElementById('create-doctor-fields');
+        const staffFields = document.getElementById('create-staff-fields');
+        if(docFields) docFields.style.display = (role === 'DOCTOR') ? 'block' : 'none';
+        if(staffFields) staffFields.style.display = (role === 'STAFF') ? 'block' : 'none';
+    }
+
+    function openEditModal(id, name, email, extra, section) {
+        const form = document.getElementById('editForm');
+        if(!form) return;
+        
+        form.action = '/admin/users/' + id + '/update';
+        document.getElementById('edit-name').value = name || '';
+        document.getElementById('edit-email').value = email || '';
+        document.getElementById('edit-section').value = section || '';
+        
+        const extraGroup = document.getElementById('edit-extra-group');
+        const extraLabel = document.getElementById('edit-extra-label');
+        const extraInput = document.getElementById('edit-extra');
+
+        if (section === 'doctors') {
+            extraGroup.style.display = 'block';
+            extraLabel.innerText = 'Specialization';
+            extraInput.value = extra || '';
+        } else if (section === 'staff') {
+            extraGroup.style.display = 'block';
+            extraLabel.innerText = 'Department';
+            extraInput.value = extra || '';
+        } else {
+            extraGroup.style.display = 'none';
+        }
+        
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    window.onload = function() {
+        if(window.location.hash) {
+            const id = window.location.hash.substring(1);
+            if(document.getElementById('nav-' + id)) showSection(id);
+        }
+    }
+</script>
+
+</body>
+</html>

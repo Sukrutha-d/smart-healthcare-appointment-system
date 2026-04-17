@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Consultation | Smart Healthcare</title>
+    <style>
+        /* Modern Premium Design System */
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --input-bg: #ffffff;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header .patient-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-content {
+            padding: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            background: var(--input-bg);
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .medicine-section {
+            background: var(--secondary);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px dashed #cbd5e1;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .medicine-section:hover {
+            border-color: var(--primary);
+        }
+
+        .medicine-section h3 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .medicine-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .btn-icon-danger {
+            background: #fee2e2;
+            color: var(--danger);
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon-danger:hover {
+            background: #fecaca;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            margin-top: 32px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>Consultation Room</h1>
+            <div class="patient-info" th:if="${appointment != null}">
+                Patient: <span th:text="${appointment.patientName}"></span> | Time: <span th:text="${#temporals.format(appointment.appointmentTime, 'dd MMM, HH:mm')}"></span>
+            </div>
+        </div>
+        <div>
+            <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 13px;">Status: ONGOING</span>
+        </div>
+    </div>
+
+    <div class="form-content">
+        <form th:action="@{/consultation/{id}/complete(id=${appointment.id})}" method="POST" id="consultationForm">
+            
+            <div class="form-group">
+                <label for="diagnosis">Final Diagnosis <span style="color:red">*</span></label>
+                <input type="text" id="diagnosis" name="diagnosis" class="form-control" placeholder="E.g., Viral Pharyngitis" required>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Clinical Notes & Symptoms</label>
+                <textarea id="notes" name="notes" class="form-control" placeholder="Patient complains of sore throat, mild fever for 2 days..."></textarea>
+            </div>
+
+            <div class="medicine-section">
+                <h3>
+                    Prescription (Medicines)
+                    <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 13px;" onclick="addMedicineRow()">+ Add Medicine</button>
+                </h3>
+                
+                <div id="medicine-container">
+                    <!-- Medicine rows will be injected here -->
+                    <div class="medicine-row">
+                        <input type="text" name="medicineNames" class="form-control" placeholder="Medicine Name (e.g. Paracetamol 500mg)">
+                        <input type="text" name="dosages" class="form-control" placeholder="Dosage (e.g. 1-0-1)">
+                        <input type="number" name="durations" class="form-control" placeholder="Days">
+                        <button type="button" class="btn-icon-danger" onclick="this.parentElement.remove()" title="Remove">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <a th:href="@{/doctor/dashboard(username=${appointment.doctorName})}" type="button" class="btn btn-outline" style="text-decoration:none;">Cancel</a>
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Ensure all details are correct. Complete consultation?')">Complete Consultation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function addMedicineRow() {
+        const container = document.getElementById('medicine-container');
+        const row = document.createElement('div');
+        row.className = 'medicine-row';
+        row.innerHTML = `
+            <input type="text" name="medicineNames" class="form-control" placeholder="Medicine Name">
+            <input type="text" name="dosages" class="form-control" placeholder="Dosage (e.g. 1-0-1)">
+            <input type="number" name="durations" class="form-control" placeholder="Days">
+            <button type="button" class="btn-icon-danger" onclick="this.parentElement.remove()" title="Remove">✕</button>
+        `;
+        container.appendChild(row);
+    }
+</script>
+
+</body>
+</html>

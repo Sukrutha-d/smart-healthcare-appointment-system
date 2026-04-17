@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice & Payment | Smart Healthcare</title>
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --text-main: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #f1f5f9;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .invoice-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .details-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .total-box {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .total-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-badge.PENDING { background: #fef08a; color: #854d0e; }
+        .status-badge.PAID { background: #dcfce7; color: #166534; }
+
+        .payment-form {
+            margin-top: 30px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+        
+        .btn-outline:hover { background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div class="invoice-card">
+    <div class="header">
+        <h1>Medical Invoice</h1>
+        <p style="color: #64748b; margin: 5px 0 0 0;">Smart Healthcare System</p>
+    </div>
+
+    <div class="details-row">
+        <span style="color: #64748b;">Invoice ID</span>
+        <strong th:text="'#INV-' + ${bill.id}"></strong>
+    </div>
+    
+    <div class="details-row">
+        <span style="color: #64748b;">Patient Name</span>
+        <strong th:text="${bill.appointment.patientName}"></strong>
+    </div>
+
+    <div class="details-row">
+        <span style="color: #64748b;">Consulting Doctor</span>
+        <strong th:text="${bill.appointment.doctorName}"></strong>
+    </div>
+    
+    <div class="details-row">
+        <span style="color: #64748b;">Date</span>
+        <strong th:text="${#temporals.format(bill.appointment.appointmentTime, 'dd MMM yyyy')}"></strong>
+    </div>
+
+    <div class="total-box">
+        <div style="color: #64748b; font-size: 14px; text-transform: uppercase; font-weight: 600;">Total Amount Due</div>
+        <div class="total-amount" th:text="'$' + ${#numbers.formatDecimal(bill.totalAmount, 1, 'COMMA', 2, 'POINT')}"></div>
+        <span th:class="'status-badge ' + ${bill.status.name()}" th:text="${bill.status.name()}"></span>
+    </div>
+
+    <!-- Payment section only if PENDING -->
+    <div class="payment-form" th:if="${bill.status.name() == 'PENDING'}">
+        <form th:action="@{/staff/pay/{id}(id=${bill.id})}" method="POST">
+            <input type="hidden" name="username" th:value="${username}">
+            
+            <label style="display:block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">Select Payment Mode</label>
+            <select name="mode" required>
+                <option value="" disabled selected>Choose payment method...</option>
+                <option th:each="mode : ${paymentModes}" th:value="${mode}" th:text="${mode}"></option>
+            </select>
+            
+            <button type="submit" class="btn" onclick="return confirm('Process this payment?')">Process Payment</button>
+        </form>
+    </div>
+
+    <div th:if="${bill.status.name() == 'PAID'}" style="margin-top: 30px; text-align: center; color: #166534; font-weight: 500;">
+        <p>✅ Payment was processed successfully on <br><span th:text="${#temporals.format(bill.payment.paymentDate, 'dd MMM yyyy HH:mm')}"></span> via <span th:text="${bill.payment.mode}"></span>.</p>
+    </div>
+
+    <!-- Conditional redirection back to dashboard -->
+    <a th:if="${role == 'STAFF'}" th:href="@{/staff/dashboard(username=${username})}" class="btn btn-outline" style="display:block; text-align:center; text-decoration:none; box-sizing:border-box;">Back to Staff Dashboard</a>
+    <a th:if="${role == 'PATIENT'}" th:href="@{/patient/dashboard(username=${username})}" class="btn btn-outline" style="display:block; text-align:center; text-decoration:none; box-sizing:border-box;">Back to My Dashboard</a>
+</div>
+
+</body>
+</html>

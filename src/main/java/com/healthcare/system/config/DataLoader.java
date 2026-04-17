@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.healthcare.system.enums.AccountStatus;
 import com.healthcare.system.enums.Role;
 import com.healthcare.system.enums.SlotStatus;
 import com.healthcare.system.model.AvailabilitySlot;
@@ -12,6 +13,8 @@ import com.healthcare.system.model.Patient;
 import com.healthcare.system.repository.DoctorRepository;
 import com.healthcare.system.repository.PatientRepository;
 import com.healthcare.system.repository.SlotRepository;
+import com.healthcare.system.repository.AdminRepository;
+import com.healthcare.system.repository.StaffRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +32,12 @@ public class DataLoader implements CommandLineRunner {
     @Autowired
     private SlotRepository slotRepository;
 
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private StaffRepository staffRepository;
+
     @Override
     public void run(String... args) {
 
@@ -44,6 +53,7 @@ public class DataLoader implements CommandLineRunner {
             doctor.setPassword("1234");
             doctor.setSpecialization("Cardiologist");
             doctor.setRole(Role.DOCTOR);
+            doctor.setStatus(AccountStatus.ACTIVE);
             doctor = doctorRepository.save(doctor);
         }
 
@@ -55,13 +65,38 @@ public class DataLoader implements CommandLineRunner {
 
         if (patient == null) {
             patient = new Patient();
-            patient.setName("Sanjana");
+            patient.setName("John");
             patient.setEmail("patient@test.com");
             patient.setPassword("1234");
             patient.setRole(Role.PATIENT);
+            patient.setStatus(AccountStatus.ACTIVE);
             patientRepository.save(patient);
         }
 
+        // ================= ADMIN =================
+        if (adminRepository.findByEmail("admin@test.com") == null) {
+            com.healthcare.system.model.Admin admin = new com.healthcare.system.model.Admin();
+            admin.setName("System Admin");
+            admin.setEmail("admin@test.com");
+            admin.setPassword("1234");
+            admin.setRole(Role.ADMIN);
+            admin.setStatus(AccountStatus.ACTIVE);
+            adminRepository.save(admin);
+        }
+
+        // ================= STAFF =================
+        if (staffRepository.findByEmail("staff@test.com") == null) {
+            com.healthcare.system.model.Staff staff = new com.healthcare.system.model.Staff();
+            staff.setName("Receptionist");
+            staff.setEmail("staff@test.com");
+            staff.setPassword("1234");
+            staff.setRole(Role.STAFF);
+            staff.setStatus(AccountStatus.ACTIVE);
+            staff.setDepartment("Front Desk");
+            staffRepository.save(staff);
+        }
+
+/* 
         // ================= SLOT GENERATION =================
         LocalDate today = LocalDate.now();
 
@@ -77,6 +112,7 @@ public class DataLoader implements CommandLineRunner {
             // 🔥 AFTERNOON 2–4
             generateSlotsIfNotExists(doctor, date.atTime(14, 0), date.atTime(16, 0));
         }
+*/
 
         System.out.println("✅ DataLoader finished");
     }
@@ -89,10 +125,10 @@ public class DataLoader implements CommandLineRunner {
         while (start.isBefore(end)) {
 
             // 🔥 PREVENT DUPLICATES
-            // boolean exists = slotRepository
-            //         .existsByDoctorAndStartTime(doctor, start);
+            boolean exists = slotRepository
+                    .existsByDoctorAndStartTime(doctor, start);
 
-            // if (!exists) {
+            if (!exists) {
 
                 AvailabilitySlot slot = new AvailabilitySlot();
                 slot.setDoctor(doctor);
@@ -101,7 +137,7 @@ public class DataLoader implements CommandLineRunner {
                 slot.setStatus(SlotStatus.AVAILABLE);
 
                 slotRepository.save(slot);
-            // }
+            }
 
             start = start.plusMinutes(15);
         }

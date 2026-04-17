@@ -18,6 +18,9 @@ public class AppointmentController {
     @Autowired
     private AppointmentService appointmentService;
 
+    @Autowired
+    private com.healthcare.system.service.BillingService billingService;
+
     // =========================
     // ✅ PAGE NAVIGATION
     // =========================
@@ -33,7 +36,7 @@ public class AppointmentController {
     }
 
     // =========================
-    // ✅ BOOK APPOINTMENT (FIXED)
+    // ✅ BOOK APPOINTMENT
     // =========================
 
     @PostMapping("/book")
@@ -46,27 +49,31 @@ public class AppointmentController {
     }
 
     @GetMapping("/patient/{name}")
-@ResponseBody
-public List<Appointment> getPatientAppointments(@PathVariable String name) {
-    return appointmentService.getAllAppointments()
-            .stream()
-            .filter(a -> a.getPatientName().equalsIgnoreCase(name))
-            .toList();
-}
+    @ResponseBody
+    public List<Appointment> getPatientAppointments(@PathVariable String name) {
+        return appointmentService.getAllAppointments()
+                .stream()
+                .filter(a -> a.getPatientName().equalsIgnoreCase(name))
+                .toList();
+    }
 
-    // =========================
-    // ✅ GET DOCTORS
-    // =========================
+    @GetMapping("/specializations")
+    @ResponseBody
+    public List<String> getSpecializations() {
+        return appointmentService.getSpecializations();
+    }
+
+    @GetMapping("/doctors-by-specialization")
+    @ResponseBody
+    public List<com.healthcare.system.model.Doctor> getDoctorsBySpecialization(@RequestParam String specialization) {
+        return appointmentService.getDoctorsBySpecialization(specialization);
+    }
 
     @GetMapping("/doctors")
     @ResponseBody
     public List<String> getDoctors() {
         return appointmentService.getDoctorNames();
     }
-
-    // =========================
-    // ✅ CANCEL APPOINTMENT
-    // =========================
 
     @PutMapping("/cancel/{id}")
     @ResponseBody
@@ -75,24 +82,29 @@ public List<Appointment> getPatientAppointments(@PathVariable String name) {
         return "Appointment cancelled";
     }
 
-    // =========================
-    // ✅ GET ALL APPOINTMENTS
-    // =========================
+    @PostMapping("/reschedule")
+    @ResponseBody
+    public String reschedule(
+            @RequestParam Long appointmentId,
+            @RequestParam Long slotId) {
+        return appointmentService.rescheduleAppointment(appointmentId, slotId);
+    }
 
     @GetMapping("/all")
     @ResponseBody
     public ResponseEntity<ApiResponse<List<Appointment>>> getAllAppointments() {
-
         List<Appointment> list = appointmentService.getAllAppointments();
-
         if (list.isEmpty()) {
-            return ResponseEntity.ok(
-                    new ApiResponse<>(true, "No appointments found", list)
-            );
+            return ResponseEntity.ok(new ApiResponse<>(true, "No appointments found", list));
         }
+        return ResponseEntity.ok(new ApiResponse<>(true, "Appointments fetched successfully", list));
+    }
 
-        return ResponseEntity.ok(
-                new ApiResponse<>(true, "Appointments fetched successfully", list)
-        );
+    @GetMapping("/bills/patient/{name}")
+    @ResponseBody
+    public List<com.healthcare.system.model.Bill> getPatientBills(@PathVariable String name) {
+        return billingService.getAllBills().stream()
+                .filter(b -> b.getAppointment() != null && b.getAppointment().getPatientName().equalsIgnoreCase(name))
+                .toList();
     }
 }

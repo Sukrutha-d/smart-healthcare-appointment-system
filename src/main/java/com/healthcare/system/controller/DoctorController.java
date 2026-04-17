@@ -58,26 +58,54 @@ public class DoctorController {
                 .filter(s -> s.getStartTime().toLocalDate().equals(selectedDate))
                 .toList();
 
-        // 🔥 AUTO GENERATE IF EMPTY
-        if (filteredSlots.isEmpty()) {
-
-            LocalDateTime start = selectedDate.atTime(9, 0);
-            LocalDateTime end = selectedDate.atTime(16, 0);
-
-            appointmentService.generateSlots(doctor, start, end);
-
-            // reload
-            allSlots = slotRepository.findByDoctorOrderByStartTimeAsc(doctor);
-
-            filteredSlots = allSlots.stream()
-                    .filter(s -> s.getStartTime().toLocalDate().equals(selectedDate))
-                    .toList();
+        // 🔥 POPULATE APPOINTMENT STATUS
+        for (AvailabilitySlot slot : filteredSlots) {
+            com.healthcare.system.model.Appointment app = appointmentService.getAppointmentBySlotId(slot.getId());
+            if (app != null) {
+                slot.setAppointmentStatus(app.getStatus());
+            }
         }
 
         model.addAttribute("slots", filteredSlots);
+        model.addAttribute("slotsExist", !filteredSlots.isEmpty());
         model.addAttribute("doctorName", doctor.getName());
         model.addAttribute("selectedDate", selectedDate.toString());
 
         return "doctor-dashboard";
+    }
+
+    @PostMapping("/generate-slots")
+    public String generateSlots(
+            @RequestParam String username,
+            @RequestParam String date,
+            @RequestParam String startTime,
+            @RequestParam String endTime,
+            Model model) {
+
+        Doctor doctor = doctorRepository.findByName(username);
+        if (doctor == null) return "redirect:/login";
+
+        LocalDate localDate = LocalDate.parse(date);
+        LocalDateTime start = localDate.atTime(java.time.LocalTime.parse(startTime));
+        LocalDateTime end = localDate.atTime(java.time.LocalTime.parse(endTime));
+
+        if (start.isBefore(LocalDateTime.now())) {
+            // Error handling could be added here, simplified for now
+        }
+
+        appointmentService.generateSlots(doctor, start, end);
+
+        return "redirect:/doctor/dashboard?username=" + username + "&date=" + date;
+    }
+
+    @PostMapping("/cancel-slot/{id}")
+    public String cancelSlot(
+            @PathVariable Long id,
+            @RequestParam String username,
+            @RequestParam String date) {
+
+        appointmentService.cancelSlot(id);
+
+        return "redirect:/doctor/dashboard?username=" + username + "&date=" + date;
     }
 }

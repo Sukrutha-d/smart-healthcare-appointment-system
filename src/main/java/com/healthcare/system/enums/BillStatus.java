@@ -1,5 +1,5 @@
 package com.healthcare.system.enums;
 
 public enum BillStatus {
-    PAID, UNPAID
+    PAID, UNPAID, PENDING
 }

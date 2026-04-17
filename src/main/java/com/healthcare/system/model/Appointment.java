@@ -1,6 +1,7 @@
 package com.healthcare.system.model;
 
 import com.healthcare.system.enums.SlotStatus;
+import com.healthcare.system.enums.AppointmentStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -16,11 +17,14 @@ public class Appointment {
     private LocalDateTime appointmentTime;
 
     @Enumerated(EnumType.STRING)
-    private SlotStatus status;
+    private AppointmentStatus status;
 
     @ManyToOne
     @JoinColumn(name = "slot_id")
     private AvailabilitySlot slot;
+
+    @Transient
+    private Long billId;
 
     // ================= GETTERS & SETTERS =================
 
@@ -52,11 +56,11 @@ public class Appointment {
         this.appointmentTime = appointmentTime;
     }
 
-    public SlotStatus getStatus() {
+    public AppointmentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(SlotStatus status) {
+    public void setStatus(AppointmentStatus status) {
         this.status = status;
     }
 
@@ -66,5 +70,13 @@ public class Appointment {
 
     public void setSlot(AvailabilitySlot slot) {
         this.slot = slot;
+    }
+
+    public Long getBillId() {
+        return billId;
+    }
+
+    public void setBillId(Long billId) {
+        this.billId = billId;
     }
 }

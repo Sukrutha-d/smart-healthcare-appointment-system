@@ -1,5 +1,5 @@
 package com.healthcare.system.enums;
 
 public enum NotificationType {
-    EMAIL,SMS
+    BOOKING, CONFIRMATION, CANCELLATION, RESCHEDULING, REMINDER
 }

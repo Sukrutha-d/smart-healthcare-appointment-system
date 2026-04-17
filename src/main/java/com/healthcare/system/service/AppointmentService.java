@@ -16,6 +16,20 @@ public interface AppointmentService {
 
     List<Appointment> getAllAppointments();
 
-    // 🔥 ADD THIS METHOD
     void generateSlots(Doctor doctor, LocalDateTime start, LocalDateTime end);
+
+    void updateAppointmentStatus(Long id, com.healthcare.system.enums.AppointmentStatus status);
+
+    com.healthcare.system.model.VisitRecord recordVisit(Long appointmentId, String diagnosis, String notes, List<com.healthcare.system.model.MedicineItem> medicines);
+
+    Appointment getAppointmentById(Long id);
+    Appointment getAppointmentBySlotId(Long slotId);
+
+    List<String> getSpecializations();
+
+    List<com.healthcare.system.model.Doctor> getDoctorsBySpecialization(String specialization);
+
+    String rescheduleAppointment(Long appointmentId, Long newSlotId);
+
+    void cancelSlot(Long slotId);
 }
